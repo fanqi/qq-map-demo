@@ -1,2 +1,3 @@
-# qq-map-demo
-腾讯地图示例
+# 腾讯地图示例
+
+1. [地图选点示例](getpoint.html)
