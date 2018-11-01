@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>腾讯地图选点示例</title>
+    <script charset="utf-8" src="https://map.qq.com/api/js?v=2.exp&key=7N4BZ-4QF3Q-OV45C-GYJLN-4OVDQ-SHBSP"></script>
+    <script src="https://lbs.qq.com/tool/getpoint/jquery-1.9.1.min.js"></script>
+</head>
+<body>
+<input type="text" onKeyPress="if(event.keyCode==13) {btnSearch.click();return false;}">
+<button type="button" id="btn_search">搜索</button>
+<div id="container" style="width: 600px;height: 600px"></div>
+<script type="text/javascript">
+    var container = document.getElementById("container");
+    var map = new qq.maps.Map(container, {
+            center: new qq.maps.LatLng(25.064181, 102.677643),
+            zoom: 16
+        }), markersArray = [],
+        label = new qq.maps.Label({
+            map: map,
+            offset: new qq.maps.Size(15, -12),
+            draggable: false,
+            clickable: false
+        }),
+        btnSearch = document.getElementById("btn_search");
+
+    map.setOptions({
+        draggableCursor: "crosshair"
+    });
+
+    $(container).mouseenter(function () {
+        label.setMap(map);
+    });
+
+    $(container).mouseleave(function () {
+        label.setMap(null);
+    });
+
+    //添加标记
+    function addMarker(location) {
+        clearOverlays();
+        var marker = new qq.maps.Marker({
+            position: location,
+            map: map
+        });
+        markersArray.push(marker);
+    }
+
+    //清除覆盖层
+    function clearOverlays() {
+        if (markersArray) {
+            for (i in markersArray) {
+                markersArray[i].setMap(null);
+            }
+        }
+    }
+
+    qq.maps.event.addListener(map, "mousemove", function (e) {
+        label.setPosition(e.latLng);
+        label.setContent(e.latLng.getLat().toFixed(6) + "," + e.latLng.getLng().toFixed(6));
+    });
+
+    qq.maps.event.addListener(map, "click", function (e) {
+        addMarker(e.latLng);
+    });
+
+    qq.maps.event.addDomListener(btnSearch, 'click', function () {
+        var address = this.parentNode.getElementsByTagName("input")[0].value;
+        if (!address) {
+            alert('地址不能为空！');
+            return
+        }
+        var url = 'https://apis.map.qq.com/ws/geocoder/v1/?address='
+            + address
+            + '&key=7N4BZ-4QF3Q-OV45C-GYJLN-4OVDQ-SHBSP&output=jsonp&&callback=?';
+        url = encodeURI(url);
+        $.getJSON(url, function (result) {
+            console.log(result)
+            if (result.status === 0) {
+                var location = result.result.location;
+                var point = new qq.maps.LatLng(location.lat, location.lng)
+                map.panTo(point);
+                addMarker(point);
+            } else {
+                alert('抱歉，无法搜到具体位置，请输入详细地址试试！');
+            }
+        })
+    });
+</script>
+</body>
+</html>
